@@ -1,1 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Minecraft Cloud Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #6750A4; --s: #FEF7FF; --t: #1C1B1F; }
+        body { font-family: 'Roboto', sans-serif; background: var(--s); display: flex; justify-content: center; padding: 20px; }
+        .card { width: 100%; max-width: 700px; background: #E7E0EC; border-radius: 28px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        #term { background: var(--t); color: #E6E1E5; height: 400px; border-radius: 16px; padding: 16px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; margin-bottom: 20px; }
+        .in-row { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #79747E; outline: none; }
+        button { background: var(--p); color: white; border: none; padding: 12px 24px; border-radius: 100px; cursor: pointer; }
+        .cmd { color: #D0BCFF; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>MC RCON Panel</h2>
+        <div id="term">Подключено к API. Ожидание команд...</div>
+        <div class="in-row">
+            <input type="text" id="inp" placeholder="Введите команду...">
+            <button onclick="run()">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        async function run() {
+            const i = document.getElementById('inp');
+            const t = document.getElementById('term');
+            const cmd = i.value.trim();
+            if(!cmd) return;
+
+            t.innerHTML += `\n<span class="cmd">> ${cmd}</span>`;
+            i.value = '';
+            t.scrollTop = t.scrollHeight;
+
+            try {
+                // Теперь используем относительный путь, так как HTML и бэкэнд на одном домене
+                const res = await fetch('/send', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ command: cmd })
+                });
+                const data = await res.json();
+                t.innerHTML += `\n${data.response || data.error}`;
+            } catch (e) {
+                t.innerHTML += `\n<span style="color:#F2B8B5">Ошибка связи с сервером.</span>`;
+            }
+            t.scrollTop = t.scrollHeight;
+        }
+        document.getElementById('inp').onkeypress = (e) => { if(e.key === 'Enter') run(); };
+    </script>
+</body>
+</html>
 
